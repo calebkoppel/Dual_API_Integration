@@ -12,7 +12,7 @@ server.on("request", connection_handler);
 function connection_handler(req, res){
 	console.log(`New Request for ${req.url} from ${req.socket.remoteAddress}`);
 	if (req.url === '/'){
-		const main = fs.createReadStream('main.html');
+		const main = fs.createReadStream('./main.html');
 		res.writeHead(200, {'Content-Type':'text/html'});
 		main.pipe(res);
 	}
@@ -41,7 +41,7 @@ function create_movie_search_request(api_key, movie, city, state, res){
 	let movie_is_cached = false;
 	let movie_results;
 	try {
-		const movie_cache = require("movies.json");
+		const movie_cache = require("./movies.json");
 		movie_cache.forEach(item =>{
 			if (item.title.toLowerCase() === movie.toLowerCase()){
 				movie_results = item;
@@ -79,14 +79,14 @@ function received_movie_result(serialized_search_object, city, state, res){
 			"title":search_results.results[0].display_title,
 			"summary":search_results.results[0].summary_short
 		}
-		fs.readFile("movies.json", (err, data)=>{	
+		fs.readFile("./movies.json", (err, data)=>{	
 			let movies = [];
 			try {
 				movies.push(...JSON.parse(data));
 			}	
 			catch {SyntaxError}
 			movies.push(results);
-			fs.writeFile("movies.json", JSON.stringify(movies, null, 4), ()=>{console.log("Movie Cached Successfully")});
+			fs.writeFile("./movies.json", JSON.stringify(movies, null, 4), ()=>{console.log("Movie Cached Successfully")});
 		});
 		create_beer_request(city, state, results, res);
 }
@@ -94,7 +94,7 @@ function create_beer_request(city, state, movie_results, res){
 	let beer_is_cached = false;
 	let cached_breweries = [];
 	try {
-		const beer_cache = require("beer.json");
+		const beer_cache = require("./beer.json");
 		beer_cache.forEach(item =>{
 			if (item.city.toLowerCase() === city.toLowerCase() && item.state.toLowerCase() === state.toLowerCase()){
 				cached_breweries.push(item);
@@ -124,14 +124,14 @@ function create_beer_request(city, state, movie_results, res){
 function received_beer_result(serialized_search_object, movie_results, res){
     const search_results = JSON.parse(serialized_search_object);
     const brewery = search_results.map(brew => ({name:brew.name, city:brew.city, state:brew.state_province}));
-	fs.readFile("beer.json", (err, data)=>{
+	fs.readFile("./beer.json", (err, data)=>{
 		let beers = [];
 		try {
 			beers.push(...JSON.parse(data));
 		}
 		catch {SyntaxError}
 			beers.push(...brewery);
-			fs.writeFile("beer.json", JSON.stringify(beers, null, 4), ()=>{console.log("Breweries Cached Successsfully")});
+			fs.writeFile("./beer.json", JSON.stringify(beers, null, 4), ()=>{console.log("Breweries Cached Successsfully")});
 	});
 	
     generate_webpage(movie_results, brewery, res);
